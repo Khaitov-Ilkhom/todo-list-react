@@ -53,6 +53,9 @@ const TodoList = () => {
         <div className="todo-container">
             <div className="wrapper">
                 <h2>Get Things Done !</h2>
+                <br/>
+                <h3 style={{color: "white"}}> Task amount: {state.length}</h3>
+                <br/> <br/>
                 <form onSubmit={formSubmit} className="form">
                     <input ref={inputValue} className="input" type="text" placeholder="What is the task today?"
                            required/>
