@@ -2,42 +2,51 @@ import "./TodoList.css"
 import {useReducer, useRef} from "react";
 import {FaCheck} from "react-icons/fa";
 import {MdDelete} from "react-icons/md";
+import { FaCheckDouble } from "react-icons/fa";
 
 
 const reducer = (state, action) => {
     switch (action.type) {
-        case "TodoList":
-            localStorage.setItem("Todo", JSON.stringify([...state.todo, action.value]))
-            return {
-                ...state,
-                todo: [...state.todo, action.value]
-            }
-        default:
-            return state
+        case "TodoList": {
+            const newTask = {
+                id: state.length + 1,
+                title: action.payload,
+                complete: false
+            };
+            const res = [...state, newTask]
+            localStorage.setItem("todo", JSON.stringify(res))
+            return res
+        }
+        case "DeleteTodo": {
+            const removeTodo = state.filter(task => task.id !== action.payload)
+            localStorage.setItem("todo", JSON.stringify(removeTodo))
+            return removeTodo
+        }
+        case "Complete": {
+            const complete = state.map(todo => todo.id === action.payload ? {...todo, complete: !todo.complete} : todo)
+            localStorage.setItem("todo", JSON.stringify(complete))
+            return complete
+        }
+        default: return state
     }
 }
 
 const TodoList = () => {
-    const initialValue = {
-        todo: JSON.parse(localStorage.getItem("Todo")) || [],
-        completed: false
-    }
+    const initialValue = JSON.parse(localStorage.getItem("todo")) || []
     const inputValue = useRef(null)
 
     const [state, dispatch] = useReducer(reducer, initialValue)
     const formSubmit = (e) => {
         e.preventDefault()
-        const value = inputValue.current.value
-        dispatch({type: "TodoList", value})
+        dispatch({type: "TodoList", payload: inputValue.current.value})
 
-        inputValue.current.value = ''
     }
-    const completedTodo = (i) => {
 
-        console.log(i)
+    const deleteTodo = (id) => {
+        dispatch({type: "DeleteTodo", payload: id})
     }
-    const deleteTodo = (i) => {
-        console.log(i)
+    const completeTodo = (id) => {
+        dispatch({type: "Complete", payload: id})
     }
 
     return (
@@ -51,17 +60,18 @@ const TodoList = () => {
                 </form>
             </div>
             {
-                state.todo ? state.todo.map((list, index) =>
-                        <div key={index} className="todo-list">
-                            <h2>{list}</h2>
-                            <div className="buttons">
-                                <button onClick={() => completedTodo(index)} className="completed"><FaCheck/></button>
-                                <button onClick={() => deleteTodo(index)} className="delete"><MdDelete/></button>
-                            </div>
+                state.map(todo =>
+                    <div key={todo.id} className="todo-list">
+                        <h2>{todo.title}</h2>
+                        <div className="buttons">
+                            <button onClick={() => completeTodo(todo.id)} className="completed">
+                                <FaCheck style={todo.complete ? {display: "none"} : {display: "block"}}/>
+                                <FaCheckDouble style={todo.complete ? {display: "block"} : {display: "none"}}/>
+                            </button>
+                            <button onClick={() => deleteTodo(todo.id)} className="delete"><MdDelete/></button>
                         </div>
-                    ) :
-                    <>
-                    </>
+                    </div>
+                )
             }
         </div>
     )
